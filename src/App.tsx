@@ -59,15 +59,8 @@ async function startListening() {
   } finally {
     setListening(false);
   }
-}
- 
-    const Speech = window.SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
-
-    if (!Speech) {
-      setReply('Voice recognition is not supported in this browser.');
-      return;
-    }
+    
+    
 
     const recognition = new Speech();
     recognition.lang = 'en-IN';
