@@ -58,25 +58,9 @@ async function startListening() {
     setReply('Voice recognition error. Please try again.');
   } finally {
     setListening(false);
-  }
+  
     
-    
-
-    const recognition = new Speech();
-    recognition.lang = 'en-IN';
-    recognition.onstart = () => setListening(true);
-    recognition.onend = () => setListening(false);
-    recognition.onresult = (event: any) => {
-      const text = event.results[0][0].transcript;
-      setCommand(text);
-      setReply('Command received: ' + text);
-    };
-    recognition.onerror = () => {
-      setListening(false);
-      setReply('Voice recognition encountered an error.');
-    };
-    recognition.start();
-  }
+  
 
   return (
     <main className="hud">
