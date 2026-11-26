@@ -1,5 +1,6 @@
 
 import { useEffect, useState } from 'react';
+import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 import {
   Activity, Shield, Cpu, Globe, Mic, Power,
   Settings, Zap, Wifi, Volume2, Terminal
@@ -18,7 +19,48 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  function startListening() {
+  
+async function startListening() {
+  try {
+    const available = await SpeechRecognition.available();
+
+    if (!available.available) {
+      setReply('Speech recognition is unavailable on this device.');
+      return;
+    }
+
+    let permission = await SpeechRecognition.checkPermissions();
+
+    if (permission.speechRecognition !== 'granted') {
+      permission = await SpeechRecognition.requestPermissions();
+    }
+
+    if (permission.speechRecognition !== 'granted') {
+      setReply('Microphone permission was not granted.');
+      return;
+    }
+
+    setListening(true);
+    setReply('Listening... Speak now.');
+
+    const result = await SpeechRecognition.start({
+      language: 'en-IN',
+      maxResults: 1,
+      popup: true,
+      partialResults: false
+    });
+
+    if (result.matches && result.matches.length > 0) {
+      setCommand(result.matches[0]);
+      setReply('Command received: ' + result.matches[0]);
+    }
+  } catch (error) {
+    setReply('Voice recognition error. Please try again.');
+  } finally {
+    setListening(false);
+  }
+}
+ 
     const Speech = window.SpeechRecognition ||
       (window as any).webkitSpeechRecognition;
 
