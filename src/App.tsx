@@ -58,10 +58,8 @@ async function startListening() {
     setReply('Voice recognition error. Please try again.');
   } finally {
     setListening(false);
-  
-    
-  
-
+  }
+} 
   return (
     <main className="hud">
       <header className="topbar">
