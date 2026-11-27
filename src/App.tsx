@@ -41,6 +41,17 @@ const getJarvisReply = (message: string): string => {
 
   return 'I am listening. My full AI brain is not connected yet.';
 };
+  const speakJarvis = (text: string) => {
+  window.speechSynthesis.cancel();
+
+  const speech = new SpeechSynthesisUtterance(text);
+  speech.lang = 'en-IN';
+  speech.rate = 0.95;
+  speech.pitch = 0.85;
+  speech.volume = 1;
+
+  window.speechSynthesis.speak(speech);
+};
   const [messages, setMessages] = useState<
     { role: 'user' | 'jarvis'; text: string }[]
   >([
