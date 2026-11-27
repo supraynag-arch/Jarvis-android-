@@ -1,6 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { SpeechRecognition } from '@capacitor-community/speech-recognition';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import {
   Activity, Shield, Cpu, Globe, Mic, Power,
   Settings, Zap, Wifi, Volume2, Terminal
@@ -41,16 +42,20 @@ const getJarvisReply = (message: string): string => {
 
   return 'I am listening. My full AI brain is not connected yet.';
 };
-  const speakJarvis = (text: string) => {
-  window.speechSynthesis.cancel();
-
-  const speech = new SpeechSynthesisUtterance(text);
-  speech.lang = 'en-IN';
-  speech.rate = 0.95;
-  speech.pitch = 0.85;
-  speech.volume = 1;
-
-  window.speechSynthesis.speak(speech);
+  const speakJarvis = async (text: string) => {
+  try {
+    await TextToSpeech.stop();
+    await TextToSpeech.speak({
+      text,
+      lang: 'en-IN',
+      rate: 0.95,
+      pitch: 0.85,
+      volume: 1
+    });
+  } catch (error) {
+    console.error('JARVIS speech error:', error);
+    setReply('Voice output failed. Please check Android text-to-speech settings.');
+  }
 };
   const [messages, setMessages] = useState<
     { role: 'user' | 'jarvis'; text: string }[]
