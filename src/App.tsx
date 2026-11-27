@@ -6,6 +6,7 @@ import { Activity, Battery, Bluetooth, Cpu, Globe2, Grid3X3, History, Home, MapP
 
 const JarvisOverlay = registerPlugin<any>('JarvisOverlay');
 const JarvisApps = registerPlugin<any>('JarvisApps');
+const JarvisScreen = registerPlugin<any>('JarvisScreen');
 
 export default function App() {
   const [time, setTime] = useState(new Date());
@@ -75,10 +76,42 @@ export default function App() {
   };
 
   const askJarvis = async (message: string) => {
-    const userMessage = message.trim();
+    let userMessage = message.trim();
     if (!userMessage) return;
-    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setCommand('');
+    const wantsScreenRead = /^(?:hey\s+)?(?:jarvis[, ]*)?(?:read|look at|check|describe)\s+(?:my\s+)?screen\s*\??$/i.test(userMessage)
+      || /^(?:what'?s|what is)\s+on\s+(?:my\s+)?screen\s*\??$/i.test(userMessage);
+    if (wantsScreenRead) {
+      const approved = window.confirm('JARVIS wants to read the text currently visible on your screen and send that text to the AI service to answer you. Password fields are excluded. Allow this one-time read?');
+      if (!approved) {
+        const declined = 'No problem. I will not read your screen.';
+        setMessages(prev => [...prev, { role: 'user', text: userMessage }, { role: 'jarvis', text: declined }]);
+        setReply(declined);
+        return;
+      }
+      try {
+        const access = await JarvisScreen.status();
+        if (!access.enabled) {
+          await JarvisScreen.requestAccess();
+          const prompt = 'Turn on JARVIS under Android Accessibility settings, then return and ask me to read the screen again. I will still ask before every read.';
+          setMessages(prev => [...prev, { role: 'user', text: userMessage }, { role: 'jarvis', text: prompt }]);
+          setReply(prompt);
+          return;
+        }
+        const visible = await JarvisScreen.readVisibleText();
+        if (!visible.text?.trim()) {
+          const empty = 'I could not find readable text on this screen.';
+          setMessages(prev => [...prev, { role: 'user', text: userMessage }, { role: 'jarvis', text: empty }]);
+          setReply(empty);
+          return;
+        }
+        userMessage = userMessage + '\n\nVisible screen text (the user approved this one-time read):\n' + visible.text;
+      } catch (error) {
+        setReply('I could not read the screen. Check JARVIS accessibility permission.');
+        return;
+      }
+    }
+    setMessages(prev => [...prev, { role: 'user', text: message.trim() }]);
     const launchMatch = userMessage.match(/^(?:hey\\s+)?(?:jarvis[, ]*)?(?:please\\s+)?(?:open|launch|start)\\s+(.+?)\\s*$/i);
     if (launchMatch) {
       const requested = launchMatch[1].toLowerCase().replace(/[.!?]+$/, '').trim();
