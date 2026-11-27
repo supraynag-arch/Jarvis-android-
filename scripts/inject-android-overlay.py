@@ -20,6 +20,6 @@ public class MainActivity extends BridgeActivity {
 """)
 manifest=root/"app/src/main/AndroidManifest.xml"
 s=manifest.read_text()
-s=s.replace('<application', '<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />\\n    <application',1)
-s=s.replace('</application>', '<service android:name="com.supratim.jarvis.JarvisOverlayService" android:exported="false" />\\n    </application>')
+s=s.replace('<application', '<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />' + chr(10) + '    <application',1)
+s=s.replace('</application>', '<service android:name="com.supratim.jarvis.JarvisOverlayService" android:exported="false" />' + chr(10) + '    </application>')
 manifest.write_text(s)
