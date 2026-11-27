@@ -1,64 +1,59 @@
-
 export default {
   async fetch(request, env) {
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        headers: corsHeaders()
-      });
+      return new Response(null, { status: 204, headers: corsHeaders() });
     }
 
     if (request.method !== "POST") {
-      return Response.json(
-        { error: "Method not allowed" },
-        { status: 405, headers: corsHeaders() }
-      );
+      return Response.json({ error: "Method not allowed" }, { status: 405, headers: corsHeaders() });
     }
 
     try {
-      const { text } = await request.json();
-
-      if (!text || typeof text !== "string" || text.length > 2500) {
-        return Response.json(
-          { error: "Invalid text" },
-          { status: 400, headers: corsHeaders() }
-        );
+      const body = await request.json();
+      const message = typeof body.message === "string" ? body.message.trim() : "";
+      if (!message || message.length > 8000) {
+        return Response.json({ error: "Message must contain 1–8000 characters." }, { status: 400, headers: corsHeaders() });
+      }
+      if (!env.GROQ_API_KEY) {
+        return Response.json({ error: "The AI service is not configured." }, { status: 503, headers: corsHeaders() });
       }
 
-      const response = await fetch(
-        `https://api.elevenlabs.io/v1/text-to-speech/${env.ELEVENLABS_VOICE_ID}`,
-        {
-          method: "POST",
-          headers: {
-            "xi-api-key": env.ELEVENLABS_API_KEY,
-            "Content-Type": "application/json",
-            "Accept": "audio/mpeg"
-          },
-          body: JSON.stringify({
-            text,
-            model_id: "eleven_multilingual_v2"
-          })
-        }
-      );
-
-      if (!response.ok) {
-        return Response.json(
-          { error: "ElevenLabs speech generation failed" },
-          { status: response.status, headers: corsHeaders() }
-        );
-      }
-
-      return new Response(response.body, {
+      const upstream = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
         headers: {
-          ...corsHeaders(),
-          "Content-Type": "audio/mpeg",
-          "Cache-Control": "no-store"
-        }
+          "Authorization": `Bearer ${env.GROQ_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          temperature: 0.7,
+          max_tokens: 900,
+          messages: [
+            {
+              role: "system",
+              content: "You are JARVIS, a helpful, capable Android personal assistant. Be clear and concise. Do not claim to have performed actions on the phone unless the app confirms that action. Ask for confirmation before sensitive actions."
+            },
+            { role: "user", content: message }
+          ]
+        })
       });
+
+      const result = await upstream.json();
+      if (!upstream.ok) {
+        return Response.json(
+          { error: "The AI provider returned an error.", details: result?.error?.message || "Request failed." },
+          { status: upstream.status, headers: corsHeaders() }
+        );
+      }
+
+      const reply = result?.choices?.[0]?.message?.content;
+      if (typeof reply !== "string" || !reply.trim()) {
+        return Response.json({ error: "The AI returned an empty response." }, { status: 502, headers: corsHeaders() });
+      }
+
+      return Response.json({ reply: reply.trim() }, { headers: corsHeaders() });
     } catch {
-      return Response.json(
-        { error: "Invalid request" },
-        { status: 400, headers: corsHeaders() }
-      );
+      return Response.json({ error: "Invalid request or AI service unavailable." }, { status: 400, headers: corsHeaders() });
     }
   }
 };
