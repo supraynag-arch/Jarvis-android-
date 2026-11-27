@@ -74,7 +74,7 @@ export default function App() {
     }
     setReply('JARVIS is thinking...');
     try {
-      const memoryContext = memories.length ? '\\n\\nUser memories (use only when relevant):\\n' + memories.map(item => '- ' + item).join('\\n') : '';
+      const memoryContext = memories.length ? '\n\nUser memories (use only when relevant):\n' + memories.map(item => '- ' + item).join('\n') : '';
       const response = await fetch('https://jarvis-ai.goru041212.workers.dev/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
