@@ -85,9 +85,28 @@ async function startListening() {
               {message.text}
             </div>
           ))}
-        </section>
+                </section>
+
+        <form className="chat-input" onSubmit={e => {
+          e.preventDefault();
+          if (!command.trim()) return;
+          setMessages(prev => [
+            ...prev,
+            { role: 'user', text: command }
+          ]);
+          setCommand('');
+        }}>
+          <input
+            value={command}
+            onChange={e => setCommand(e.target.value)}
+            placeholder="Message JARVIS..."
+          />
+          <button type="submit">SEND</button>
+        </form>
       </main>
-    )}
+    )} 
+      
+  
 
     {!chatOpen && (
       <main className="hud"> 
