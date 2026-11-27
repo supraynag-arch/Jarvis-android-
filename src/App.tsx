@@ -119,6 +119,9 @@ async function startListening() {
           </div>
         </div>
         <div className="system-online"><i /> SYSTEM ONLINE</div>
+        <button onClick={() => setChatOpen(true)}>
+  OPEN CHAT
+</button>
         <div className="clock">
           {time.toLocaleTimeString('en-IN', { hour12: false })}
           <small>{time.toDateString()}</small>
