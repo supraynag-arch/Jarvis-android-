@@ -127,14 +127,18 @@ async function startListening() {
           if (!command.trim()) return;
           const userMessage = command.trim();
 
+const jarvisResponse = getJarvisReply(userMessage);
+
 setMessages(prev => [
   ...prev,
   { role: 'user', text: userMessage },
   {
     role: 'jarvis',
-    text: getJarvisReply(userMessage)
+    text: jarvisResponse
   }
 ]);
+
+speakJarvis(jarvisResponse);
 
 setCommand('');
         }}>
