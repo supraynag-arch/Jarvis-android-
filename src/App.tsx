@@ -11,6 +11,13 @@ export default function App() {
   const [listening, setListening] = useState(false);
   const [command, setCommand] = useState('');
   const [reply, setReply] = useState(
+    const [chatOpen, setChatOpen] = useState(false);
+
+const [messages, setMessages] = useState<
+  { role: 'user' | 'jarvis'; text: string }[]
+>([
+  { role: 'jarvis', text: 'Hello! I am JARVIS. How can I assist you?' }
+]);
     'All systems online. How may I assist you?'
   );
 
