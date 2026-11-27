@@ -235,6 +235,10 @@ setCommand('');
       </footer>
 
       <div className="signature">I AM ALWAYS WITH YOU. ♥</div>
-    </main>
+     </main>
+    )}
+  </>
   );
-}
+}   
+  
+
