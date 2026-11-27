@@ -16,7 +16,31 @@ export default function App() {
   );
 
   const [chatOpen, setChatOpen] = useState(false);
+const getJarvisReply = (message: string): string => {
+  const text = message.toLowerCase();
 
+  if (text.includes('hello') || text.includes('hi')) {
+    return 'Hello! Good to hear from you. How can I help?';
+  }
+
+  if (text.includes('your name')) {
+    return 'I am JARVIS, your personal assistant.';
+  }
+
+  if (text.includes('how are you')) {
+    return 'All systems operational. Thank you for asking!';
+  }
+
+  if (text.includes('who are you')) {
+    return 'I am JARVIS, your personal AI assistant.';
+  }
+
+  if (text.includes('help')) {
+    return 'I am ready to assist you. Tell me what you need!';
+  }
+
+  return 'I am listening. My full AI brain is not connected yet.';
+};
   const [messages, setMessages] = useState<
     { role: 'user' | 'jarvis'; text: string }[]
   >([
