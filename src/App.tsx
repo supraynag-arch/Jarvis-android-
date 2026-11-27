@@ -17,31 +17,37 @@ export default function App() {
   );
 
   const [chatOpen, setChatOpen] = useState(false);
-const getJarvisReply = (message: string): string => {
-  const text = message.toLowerCase();
+const askJarvis = async (message: string) => {
+    const userMessage = message.trim();
+    if (!userMessage) return;
 
-  if (text.includes('hello') || text.includes('hi')) {
-    return 'Hello! Good to hear from you. How can I help?';
-  }
+    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    setCommand('');
+    setReply('JARVIS is thinking...');
 
-  if (text.includes('your name')) {
-    return 'I am JARVIS, your personal assistant.';
-  }
+    try {
+      const response = await fetch('https://jarvis-ai.goru041212.workers.dev/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage })
+      });
 
-  if (text.includes('how are you')) {
-    return 'All systems operational. Thank you for asking!';
-  }
+      const data = await response.json();
 
-  if (text.includes('who are you')) {
-    return 'I am JARVIS, your personal AI assistant.';
-  }
+      if (!response.ok) {
+        throw new Error(data.details || data.error || 'AI request failed.');
+      }
 
-  if (text.includes('help')) {
-    return 'I am ready to assist you. Tell me what you need!';
-  }
-
-  return 'I am listening. My full AI brain is not connected yet.';
-};
+      const answer = String(data.reply || 'I could not generate a response.');
+      setMessages(prev => [...prev, { role: 'jarvis', text: answer }]);
+      setReply(answer);
+      await speakJarvis(answer);
+    } catch (error) {
+      const errorMessage = 'I could not reach my AI brain: ' + String(error);
+      setMessages(prev => [...prev, { role: 'jarvis', text: errorMessage }]);
+      setReply(errorMessage);
+    }
+  };
   const speakJarvis = async (text: string) => {
   try {
     const result = await TextToSpeech.getSupportedLanguages();
@@ -113,7 +119,7 @@ async function startListening() {
 
     if (result.matches && result.matches.length > 0) {
       setCommand(result.matches[0]);
-      setReply('Command received: ' + result.matches[0]);
+      await askJarvis(result.matches[0]);
     }
   } catch (error) {
     setReply('Voice recognition error. Please try again.');
@@ -140,23 +146,7 @@ async function startListening() {
 
         <form className="chat-input" onSubmit={e => {
           e.preventDefault();
-          if (!command.trim()) return;
-          const userMessage = command.trim();
-
-const jarvisResponse = getJarvisReply(userMessage);
-
-setMessages(prev => [
-  ...prev,
-  { role: 'user', text: userMessage },
-  {
-    role: 'jarvis',
-    text: jarvisResponse
-  }
-]);
-
-speakJarvis(jarvisResponse);
-
-setCommand('');
+          void askJarvis(command);
         }}>
           <input
             value={command}
