@@ -90,11 +90,18 @@ async function startListening() {
         <form className="chat-input" onSubmit={e => {
           e.preventDefault();
           if (!command.trim()) return;
-          setMessages(prev => [
-            ...prev,
-            { role: 'user', text: command }
-          ]);
-          setCommand('');
+          const userMessage = command.trim();
+
+setMessages(prev => [
+  ...prev,
+  { role: 'user', text: userMessage },
+  {
+    role: 'jarvis',
+    text: 'I received your message. My AI brain is not connected yet, but I am ready!'
+  }
+]);
+
+setCommand('');
         }}>
           <input
             value={command}
