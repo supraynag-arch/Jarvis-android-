@@ -45,13 +45,8 @@ manifest = root / "app/src/main/AndroidManifest.xml"
 s = manifest.read_text()
 s = s.replace(
     "<application",
-    '<uses-permission android:name="android.permission.RECORD_AUDIO" />\\n'
-    '<application',
-    1
-)
-s = s.replace(
-    "<application",
     '<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />\n'
+    '<uses-permission android:name="android.permission.RECORD_AUDIO" />\n'
     '<queries><intent><action android:name="android.intent.action.MAIN" />'
     '<category android:name="android.intent.category.LAUNCHER" />'
     '</intent></queries>\n    <application',
