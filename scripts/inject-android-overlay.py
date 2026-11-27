@@ -7,7 +7,7 @@ src = Path("native/android")
 pkg = root / "app/src/main/java/com/supratim/jarvis"
 pkg.mkdir(parents=True, exist_ok=True)
 
-for name in ("JarvisOverlayPlugin.java", "JarvisOverlayService.java", "JarvisAppsPlugin.java"):
+for name in ("JarvisOverlayPlugin.java", "JarvisOverlayService.java", "JarvisAppsPlugin.java", "JarvisScreenPlugin.java", "JarvisAccessibilityService.java"):
     shutil.copy2(src / name, pkg / name)
 
 main = pkg / "MainActivity.java"
@@ -18,10 +18,28 @@ public class MainActivity extends BridgeActivity {
   @Override public void onCreate(Bundle savedInstanceState) {
     registerPlugin(JarvisOverlayPlugin.class);
     registerPlugin(JarvisAppsPlugin.class);
+    registerPlugin(JarvisScreenPlugin.class);
     super.onCreate(savedInstanceState);
   }
 }
 """)
+
+# Install accessibility-service metadata and description.
+res = root / "app/src/main/res"
+xml_dir = res / "xml"
+xml_dir.mkdir(parents=True, exist_ok=True)
+shutil.copy2(src / "accessibility_service_config.xml", xml_dir / "jarvis_accessibility_service.xml")
+values = res / "values"
+values.mkdir(parents=True, exist_ok=True)
+strings = values / "strings.xml"
+description = '<string name="jarvis_accessibility_description">Allows JARVIS to read visible screen text only when you explicitly ask and approve each read.</string>'
+if strings.exists():
+    content = strings.read_text()
+    if "jarvis_accessibility_description" not in content:
+        content = content.replace("</resources>", "    " + description + "\\n</resources>")
+    strings.write_text(content)
+else:
+    strings.write_text('<?xml version="1.0" encoding="utf-8"?>\\n<resources>\\n    ' + description + '\\n</resources>\\n')
 
 manifest = root / "app/src/main/AndroidManifest.xml"
 s = manifest.read_text()
