@@ -5,6 +5,7 @@ import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Activity, Battery, Bluetooth, Cpu, Globe2, Grid3X3, History, Home, MapPin, Mic, Settings, ShieldCheck, Signal, Sparkles, Star, Wifi, Zap, Box, Crown, Send, Volume2 } from 'lucide-react';
 
 const JarvisOverlay = registerPlugin<any>('JarvisOverlay');
+const JarvisApps = registerPlugin<any>('JarvisApps');
 
 export default function App() {
   const [time, setTime] = useState(new Date());
@@ -78,6 +79,36 @@ export default function App() {
     if (!userMessage) return;
     setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setCommand('');
+    const launchMatch = userMessage.match(/^(?:hey\\s+)?(?:jarvis[, ]*)?(?:please\\s+)?(?:open|launch|start)\\s+(.+?)\\s*$/i);
+    if (launchMatch) {
+      const requested = launchMatch[1].toLowerCase().replace(/[.!?]+$/, '').trim();
+      const appPackages: Record<string, string> = {
+        'whatsapp': 'com.whatsapp', 'whats app': 'com.whatsapp',
+        'instagram': 'com.instagram.android', 'insta': 'com.instagram.android',
+        'youtube': 'com.google.android.youtube', 'you tube': 'com.google.android.youtube',
+        'chrome': 'com.android.chrome', 'google chrome': 'com.android.chrome',
+        'settings': 'com.android.settings', 'phone settings': 'com.android.settings',
+        'maps': 'com.google.android.apps.maps', 'google maps': 'com.google.android.apps.maps',
+        'gmail': 'com.google.android.gm', 'google mail': 'com.google.android.gm',
+        'spotify': 'com.spotify.music', 'telegram': 'org.telegram.messenger',
+        'facebook': 'com.facebook.katana'
+      };
+      const packageName = appPackages[requested];
+      if (packageName) {
+        try {
+          await JarvisApps.launchApp({ packageName });
+          const confirmation = `Opening ${requested}.`;
+          setMessages(prev => [...prev, { role: 'jarvis', text: confirmation }]);
+          setReply(confirmation);
+          await speakJarvis(confirmation);
+        } catch (error) {
+          const failure = `I couldn't open ${requested}. Is it installed on your phone?`;
+          setMessages(prev => [...prev, { role: 'jarvis', text: failure }]);
+          setReply(failure);
+        }
+        return;
+      }
+    }
     const rememberMatch = userMessage.match(/^(?:jarvis[, ]+)?remember(?: that)?[: ]+(.+)$/i);
     if (rememberMatch) {
       const fact = rememberMatch[1].trim();
