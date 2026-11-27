@@ -102,7 +102,15 @@ export default function App() {
       const response = await fetch('https://jarvis-ai.goru041212.workers.dev/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage + memoryContext })
+        body: JSON.stringify({
+          message: [
+            "Recent conversation (oldest first):",
+            ...messages.slice(-10).map(item => (item.role === 'user' ? 'USER: ' : 'JARVIS: ') + item.text),
+            "USER: " + userMessage,
+            memoryContext,
+            "Respond to the latest USER message using this conversation context; understand short follow-ups, pronouns, typos, and informal phrasing."
+          ].join("\\n")
+        })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.details || data.error || 'AI request failed.');
