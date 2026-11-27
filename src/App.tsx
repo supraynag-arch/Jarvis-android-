@@ -44,17 +44,28 @@ const getJarvisReply = (message: string): string => {
 };
   const speakJarvis = async (text: string) => {
   try {
-    await TextToSpeech.stop();
+    const result = await TextToSpeech.getSupportedLanguages();
+    const englishLanguage =
+      result.languages.find(language => language.toLowerCase() === 'en-us') ||
+      result.languages.find(language => language.toLowerCase().startsWith('en')) ||
+      'en-US';
+
     await TextToSpeech.speak({
       text,
-      lang: 'en-IN',
-      rate: 0.95,
-      pitch: 0.85,
+      lang: englishLanguage,
+      rate: 1,
+      pitch: 1,
       volume: 1
     });
+    setReply('JARVIS voice is ready.');
   } catch (error) {
     console.error('JARVIS speech error:', error);
-    setReply('Voice output failed. Please check Android text-to-speech settings.');
+    setReply('JARVIS voice error: ' + String(error));
+    try {
+      await TextToSpeech.openInstall();
+    } catch (installError) {
+      console.error('TTS setup error:', installError);
+    }
   }
 };
   const [messages, setMessages] = useState<
