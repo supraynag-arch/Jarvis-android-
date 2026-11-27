@@ -36,10 +36,10 @@ description = '<string name="jarvis_accessibility_description">Allows JARVIS to 
 if strings.exists():
     content = strings.read_text()
     if "jarvis_accessibility_description" not in content:
-        content = content.replace("</resources>", "    " + description + "\\n</resources>")
+        content = content.replace("</resources>", "    " + description + "\n</resources>")
     strings.write_text(content)
 else:
-    strings.write_text('<?xml version="1.0" encoding="utf-8"?>\\n<resources>\\n    ' + description + '\\n</resources>\\n')
+    strings.write_text('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    ' + description + '\n</resources>\n')
 
 manifest = root / "app/src/main/AndroidManifest.xml"
 s = manifest.read_text()
@@ -54,6 +54,12 @@ s = s.replace(
 s = s.replace(
     "</application>",
     '<service android:name="com.supratim.jarvis.JarvisOverlayService" '
-    'android:exported="false" />\n    </application>'
+    'android:exported="false" />\n'
+    '<service android:name="com.supratim.jarvis.JarvisAccessibilityService" '
+    'android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" '
+    'android:exported="false"><intent-filter><action android:name="android.accessibilityservice.AccessibilityService" />'
+    '</intent-filter><meta-data android:name="android.accessibilityservice" '
+    'android:resource="@xml/jarvis_accessibility_service" /></service>\n'
+    '</application>'
 )
 manifest.write_text(s)
