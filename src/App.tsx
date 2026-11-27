@@ -97,7 +97,7 @@ setMessages(prev => [
   { role: 'user', text: userMessage },
   {
     role: 'jarvis',
-    text: 'I received your message. My AI brain is not connected yet, but I am ready!'
+    text: 'getJarvisReply(userMessage)'
   }
 ]);
 
