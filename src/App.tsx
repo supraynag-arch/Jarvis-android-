@@ -112,7 +112,7 @@ export default function App() {
       }
     }
     setMessages(prev => [...prev, { role: 'user', text: message.trim() }]);
-    const launchMatch = userMessage.match(/^(?:hey\\s+)?(?:jarvis[, ]*)?(?:please\\s+)?(?:open|launch|start)\\s+(.+?)\\s*$/i);
+    const launchMatch = userMessage.match(/^(?:hey\s+)?(?:jarvis[, ]*)?(?:please\s+)?(?:open|launch|start)\s+(.+?)\s*$/i);
     if (launchMatch) {
       const requested = launchMatch[1].toLowerCase().replace(/[.!?]+$/, '').trim();
       const appPackages: Record<string, string> = {
