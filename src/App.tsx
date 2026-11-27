@@ -71,7 +71,26 @@ async function startListening() {
   }
 } 
   return (
-    <main className="hud">
+  <>
+    {chatOpen && (
+      <main className="chat-screen">
+        <header className="chat-header">
+          <h2>J.A.R.V.I.S</h2>
+          <button onClick={() => setChatOpen(false)}>BACK</button>
+        </header>
+
+        <section className="chat-messages">
+          {messages.map((message, index) => (
+            <div key={index} className={`message ${message.role}`}>
+              {message.text}
+            </div>
+          ))}
+        </section>
+      </main>
+    )}
+
+    {!chatOpen && (
+      <main className="hud"> 
       <header className="topbar">
         <div className="brand">
           <span className="brand-icon">◈</span>
