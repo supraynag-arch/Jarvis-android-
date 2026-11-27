@@ -1,289 +1,137 @@
-
 import { useEffect, useState } from 'react';
 import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
-import {
-  Activity, Shield, Cpu, Globe, Mic, Power,
-  Settings, Zap, Wifi, Volume2, Terminal
-} from 'lucide-react';
+import { Activity, Battery, Bluetooth, Cpu, Globe2, Grid3X3, History, Home, MapPin, Mic, Settings, ShieldCheck, Signal, Sparkles, Star, Wifi, Zap, Box, Crown, Send, Volume2 } from 'lucide-react';
 
 export default function App() {
   const [time, setTime] = useState(new Date());
   const [listening, setListening] = useState(false);
   const [command, setCommand] = useState('');
-  
-  const [reply, setReply] = useState(
-    'All systems online. How may I assist you?'
-  );
-
+  const [reply, setReply] = useState('I’m here, always. What can I do for you?');
   const [chatOpen, setChatOpen] = useState(false);
-const askJarvis = async (message: string) => {
+  const [activeTab, setActiveTab] = useState('Home');
+  const [messages, setMessages] = useState<{ role: 'user' | 'jarvis'; text: string }[]>([
+    { role: 'jarvis', text: 'Hello! I am JARVIS. How can I assist you?' }
+  ]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const speakJarvis = async (text: string) => {
+    try {
+      const result = await TextToSpeech.getSupportedLanguages();
+      const language = result.languages.find(x => x.toLowerCase() === 'en-us') || result.languages.find(x => x.toLowerCase().startsWith('en')) || 'en-US';
+      await TextToSpeech.speak({ text, lang: language, rate: 1, pitch: 1, volume: 1 });
+    } catch (error) {
+      console.error('JARVIS speech error:', error);
+      setReply('I could not start voice output. Please check Android text-to-speech settings.');
+    }
+  };
+
+  const askJarvis = async (message: string) => {
     const userMessage = message.trim();
     if (!userMessage) return;
-
     setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setCommand('');
     setReply('JARVIS is thinking...');
-
     try {
       const response = await fetch('https://jarvis-ai.goru041212.workers.dev/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: userMessage })
       });
-
       const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.details || data.error || 'AI request failed.');
-      }
-
+      if (!response.ok) throw new Error(data.details || data.error || 'AI request failed.');
       const answer = String(data.reply || 'I could not generate a response.');
       setMessages(prev => [...prev, { role: 'jarvis', text: answer }]);
       setReply(answer);
       await speakJarvis(answer);
     } catch (error) {
-      const errorMessage = 'I could not reach my AI brain: ' + String(error);
-      setMessages(prev => [...prev, { role: 'jarvis', text: errorMessage }]);
-      setReply(errorMessage);
+      const message = 'I could not reach my AI brain: ' + String(error);
+      setMessages(prev => [...prev, { role: 'jarvis', text: message }]);
+      setReply(message);
     }
   };
-  const speakJarvis = async (text: string) => {
-  try {
-    const result = await TextToSpeech.getSupportedLanguages();
-    const englishLanguage =
-      result.languages.find(language => language.toLowerCase() === 'en-us') ||
-      result.languages.find(language => language.toLowerCase().startsWith('en')) ||
-      'en-US';
 
-    await TextToSpeech.speak({
-      text,
-      lang: englishLanguage,
-      rate: 1,
-      pitch: 1,
-      volume: 1
-    });
-    setReply('JARVIS voice is ready.');
-  } catch (error) {
-    console.error('JARVIS speech error:', error);
-    setReply('JARVIS voice error: ' + String(error));
+  async function startListening() {
     try {
-      await TextToSpeech.openInstall();
-    } catch (installError) {
-      console.error('TTS setup error:', installError);
+      const available = await SpeechRecognition.available();
+      if (!available.available) { setReply('Speech recognition is unavailable on this device.'); return; }
+      let permission = await SpeechRecognition.checkPermissions();
+      if (permission.speechRecognition !== 'granted') permission = await SpeechRecognition.requestPermissions();
+      if (permission.speechRecognition !== 'granted') { setReply('Microphone permission was not granted.'); return; }
+      setListening(true);
+      setReply('Listening... Speak now.');
+      const result = await SpeechRecognition.start({ language: 'en-IN', maxResults: 1, popup: false, partialResults: false });
+      if (result.matches?.length) await askJarvis(result.matches[0]);
+    } catch (error) {
+      setReply('Voice recognition error. Please try again.');
+    } finally {
+      setListening(false);
     }
   }
-};
-  const [messages, setMessages] = useState<
-    { role: 'user' | 'jarvis'; text: string }[]
-  >([
-    { role: 'jarvis', text: 'Hello! I am JARVIS. How can I assist you?' }
-  ]);
 
-  
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  const navItems = [
+    { name: 'Home', icon: Home },
+    { name: 'Smart Control', icon: Grid3X3 },
+    { name: 'History', icon: History },
+    { name: 'Favorites', icon: Star },
+    { name: 'Pro Mode', icon: Crown }
+  ];
 
-  
-async function startListening() {
-  try {
-    const available = await SpeechRecognition.available();
-
-    if (!available.available) {
-      setReply('Speech recognition is unavailable on this device.');
-      return;
-    }
-
-    let permission = await SpeechRecognition.checkPermissions();
-
-    if (permission.speechRecognition !== 'granted') {
-      permission = await SpeechRecognition.requestPermissions();
-    }
-
-    if (permission.speechRecognition !== 'granted') {
-      setReply('Microphone permission was not granted.');
-      return;
-    }
-
-    setListening(true);
-    setReply('Listening... Speak now.');
-
-    const result = await SpeechRecognition.start({
-      language: 'en-IN',
-      maxResults: 1,
-      popup: false,
-      partialResults: false
-    });
-
-    if (result.matches && result.matches.length > 0) {
-      setCommand(result.matches[0]);
-      await askJarvis(result.matches[0]);
-    }
-  } catch (error) {
-    setReply('Voice recognition error. Please try again.');
-  } finally {
-    setListening(false);
-  }
-} 
   return (
-  <>
-    {chatOpen && (
-      <main className="chat-screen">
-        <header className="chat-header">
-          <h2>J.A.R.V.I.S</h2>
-          <button onClick={() => setChatOpen(false)}>BACK</button>
-        </header>
+    <>
+      {chatOpen ? (
+        <main className="chat-screen">
+          <header className="chat-header"><div><span className="eyebrow">PERSONAL AI ASSISTANT</span><h2>J.A.R.V.I.S</h2></div><button onClick={() => setChatOpen(false)}>BACK</button></header>
+          <section className="chat-messages">
+            {messages.map((message, index) => <div key={index} className={`message ${message.role}`}><small>{message.role === 'jarvis' ? 'JARVIS' : 'YOU'}</small>{message.text}</div>)}
+          </section>
+          <form className="chat-input" onSubmit={e => { e.preventDefault(); void askJarvis(command); }}>
+            <input value={command} onChange={e => setCommand(e.target.value)} placeholder="Ask JARVIS anything..." />
+            <button type="submit"><Send size={17}/></button>
+          </form>
+        </main>
+      ) : (
+        <main className="hud">
+          <header className="topbar">
+            <div className="clock"><strong>{time.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false })}</strong><small>{time.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })}</small></div>
+            <div className="top-status"><Signal size={15}/><Wifi size={16}/><Battery size={18}/></div>
+          </header>
 
-        <section className="chat-messages">
-          {messages.map((message, index) => (
-            <div key={index} className={`message ${message.role}`}>
-              {message.text}
+          <section className="welcome-row">
+            <div className="online-card"><i/><div><b>JARVIS ONLINE</b><small>PERSONAL AI ASSISTANT</small></div></div>
+            <div className="greeting"><small>GOOD DAY,</small><b>SUPRATIM <span>♥</span></b></div>
+          </section>
+
+          <section className="hero">
+            <div className="core-ring">
+              <div className="ring ring-a"/><div className="ring ring-b"/><div className="ring ring-c"/>
+              <div className="core-center"><Sparkles size={26}/><strong>JARVIS</strong><small>— AI ASSISTANT —</small></div>
             </div>
-          ))}
-                </section>
+            <div className="globe-wrap"><div className="globe-orbit"/><Globe2 className="globe-icon"/><div className="globe-base"/></div>
+          </section>
 
-        <form className="chat-input" onSubmit={e => {
-          e.preventDefault();
-          void askJarvis(command);
-        }}>
-          <input
-            value={command}
-            onChange={e => setCommand(e.target.value)}
-            placeholder="Message JARVIS..."
-          />
-          <button type="submit">SEND</button>
-        </form>
-      </main>
-    )} 
-      
-  
+          <section className="reply-panel"><Volume2 size={22}/><p>{reply}</p></section>
 
-    {!chatOpen && (
-      <main className="hud"> 
-      <header className="topbar">
-        <div className="brand">
-          <span className="brand-icon">◈</span>
-          <div>
-            <strong>J.A.R.V.I.S</strong>
-            <small>PERSONAL AI SYSTEM</small>
-          </div>
-        </div>
-        <div className="system-online"><i /> SYSTEM ONLINE</div>
-        <button onClick={() => setChatOpen(true)}>
-  OPEN CHAT
-</button>
-        <div className="clock">
-          {time.toLocaleTimeString('en-IN', { hour12: false })}
-          <small>{time.toDateString()}</small>
-        </div>
-      </header>
+          <section className="quick-actions">
+            <button onClick={() => setActiveTab('Smart Control')}><Grid3X3/><span>Apps</span></button>
+            <button onClick={() => setActiveTab('Smart Control')}><Box/><span>Tools</span></button>
+            <button className={`mic-button ${listening ? 'listening' : ''}`} onClick={startListening}><Mic/><span>{listening ? 'Listening' : 'Tap to speak'}</span></button>
+            <button onClick={() => setReply('Settings panel is coming next.')}><Settings/><span>Settings</span></button>
+            <button onClick={() => setChatOpen(true)}><Activity/><span>More</span></button>
+          </section>
 
-      <section className="dashboard">
-        <aside className="side-panel">
-          <h3><Activity size={15}/> GLOBAL OVERVIEW</h3>
-          <div className="metric"><span>CPU STATUS</span><b>OPTIMAL</b></div>
-          <div className="meter"><i style={{width:'68%'}} /></div>
-          <div className="metric"><span>MEMORY</span><b>68%</b></div>
-          <div className="meter"><i style={{width:'68%'}} /></div>
-          <div className="metric"><span>NETWORK</span><b>CONNECTED</b></div>
-          <div className="meter"><i style={{width:'90%'}} /></div>
+          <div className="type-command"><input value={command} onChange={e => setCommand(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') void askJarvis(command); }} placeholder="Type a command for JARVIS..."/><button onClick={() => void askJarvis(command)} aria-label="Send command"><Send size={17}/></button></div>
 
-          <h3><Shield size={15}/> SECURITY</h3>
-          <div className="security">
-            <Shield size={27}/>
-            <b>PROTECTED</b>
-            <small>All systems secure</small>
-          </div>
-
-          <h3><Terminal size={15}/> SYSTEM LOG</h3>
-          <p className="log">[OK] Core initialized</p>
-          <p className="log">[OK] Interface ready</p>
-          <p className="log">[OK] Awaiting command</p>
-        </aside>
-
-        <section className="core-section">
-          <div className="core-heading">
-            <span>ARTIFICIAL INTELLIGENCE</span>
-            <h2>JARVIS CORE</h2>
-            <small>NEURAL ENGINE ACTIVE</small>
-          </div>
-
-          <div className="reactor">
-            <div className="orbit orbit-one" />
-            <div className="orbit orbit-two" />
-            <div className="orbit orbit-three" />
-            <div className="core-glow">
-              <div className="core-inner">J</div>
-            </div>
-          </div>
-
-          <p className="core-status">◆ POWER SYSTEM STABLE ◆</p>
-          <div className="assistant-reply">{reply}</div>
-        </section>
-
-        <aside className="side-panel right-panel">
-          <h3><Cpu size={15}/> OPERATIONS</h3>
-          <button onClick={() => setReply('System diagnostics requested.')}>
-            <Activity size={17}/> SYSTEM DIAGNOSTICS
-          </button>
-          <button onClick={() => setReply('Security protocols are active.')}>
-            <Shield size={17}/> SECURITY PROTOCOL
-          </button>
-          <button onClick={() => setReply('Power systems operational.')}>
-            <Zap size={17}/> POWER CONTROL
-          </button>
-          <button onClick={() => setReply('Network connection status: online.')}>
-            <Wifi size={17}/> NETWORK STATUS
-          </button>
-
-          <h3><Globe size={15}/> GLOBAL POSITION</h3>
-          <div className="earth">
-            <Globe size={95} strokeWidth={0.7}/>
-            <span>GLOBAL NETWORK</span>
-          </div>
-
-          <h3><Settings size={15}/> POWER STATUS</h3>
-          <div className="metric"><span>REACTOR</span><b>ACTIVE</b></div>
-          <div className="metric"><span>SECURITY</span><b>ENABLED</b></div>
-        </aside>
-      </section>
-
-      <footer className="bottom-bar">
-        <div className="voice-info">
-          <Volume2 size={17}/>
-          <span>{listening ? 'LISTENING...' : 'VOICE SYSTEM READY'}</span>
-        </div>
-        <div className="command-box">
-          <input
-            value={command}
-            onChange={e => setCommand(e.target.value)}
-            placeholder="Enter your command..."
-            onKeyDown={e => {
-              if (e.key === 'Enter' && command.trim()) {
-                setReply('Command received: ' + command);
-              }
-            }}
-          />
-          <button onClick={() => {
-            if (command.trim()) setReply('Command received: ' + command);
-          }}>SEND</button>
-        </div>
-        <button className="mic-button" onClick={startListening}>
-          <Mic size={20}/>
-          {listening ? 'STOP' : 'VOICE'}
-        </button>
-        <div className="power-button">
-          <Power size={18}/> ONLINE
-        </div>
-      </footer>
-
-      <div className="signature">I AM ALWAYS WITH YOU. ♥</div>
-     </main>
-    )}
-  </>
+          <nav className="bottom-nav">
+            {navItems.map(({ name, icon: Icon }) => <button key={name} className={activeTab === name ? 'active' : ''} onClick={() => { setActiveTab(name); if (name === 'History') setChatOpen(true); else if (name !== 'Home') setReply(name + ' is being prepared.'); }}><Icon/><span>{name}</span></button>)}
+          </nav>
+          <div className="signature">YOUR PERSONAL AI • ALWAYS READY</div>
+        </main>
+      )}
+    </>
   );
-}   
-  
-
+}
