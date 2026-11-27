@@ -10,9 +10,28 @@ export default function App() {
   const [reply, setReply] = useState('I’m here, always. What can I do for you?');
   const [chatOpen, setChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Home');
-  const [messages, setMessages] = useState<{ role: 'user' | 'jarvis'; text: string }[]>([
-    { role: 'jarvis', text: 'Hello! I am JARVIS. How can I assist you?' }
-  ]);
+  const [messages, setMessages] = useState<{ role: 'user' | 'jarvis'; text: string }[]>(() => {
+    try {
+      const saved = localStorage.getItem('jarvis-chat-v1');
+      return saved ? JSON.parse(saved) : [{ role: 'jarvis', text: 'Hello! I am JARVIS. How can I assist you?' }];
+    } catch {
+      return [{ role: 'jarvis', text: 'Hello! I am JARVIS. How can I assist you?' }];
+    }
+  });
+  const [memories, setMemories] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem('jarvis-memory-v1') || '[]'); }
+    catch { return []; }
+  });
+
+  useEffect(() => {
+    try { localStorage.setItem('jarvis-chat-v1', JSON.stringify(messages.slice(-100))); }
+    catch (error) { console.warn('Could not save JARVIS chat history:', error); }
+  }, [messages]);
+
+  useEffect(() => {
+    try { localStorage.setItem('jarvis-memory-v1', JSON.stringify(memories.slice(-50))); }
+    catch (error) { console.warn('Could not save JARVIS memory:', error); }
+  }, [memories]);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -35,12 +54,31 @@ export default function App() {
     if (!userMessage) return;
     setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setCommand('');
+    const rememberMatch = userMessage.match(/^(?:jarvis[, ]+)?remember(?: that)?[: ]+(.+)$/i);
+    if (rememberMatch) {
+      const fact = rememberMatch[1].trim();
+      setMemories(prev => [...prev.filter(item => item.toLowerCase() !== fact.toLowerCase()), fact].slice(-50));
+      const confirmation = 'I will remember that on this device: ' + fact;
+      setMessages(prev => [...prev, { role: 'jarvis', text: confirmation }]);
+      setReply(confirmation);
+      await speakJarvis(confirmation);
+      return;
+    }
+    if (/^(?:jarvis[, ]+)?forget my memories$/i.test(userMessage)) {
+      setMemories([]);
+      const confirmation = 'Your saved JARVIS memories on this device have been cleared.';
+      setMessages(prev => [...prev, { role: 'jarvis', text: confirmation }]);
+      setReply(confirmation);
+      await speakJarvis(confirmation);
+      return;
+    }
     setReply('JARVIS is thinking...');
     try {
+      const memoryContext = memories.length ? '\\n\\nUser memories (use only when relevant):\\n' + memories.map(item => '- ' + item).join('\\n') : '';
       const response = await fetch('https://jarvis-ai.goru041212.workers.dev/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage })
+        body: JSON.stringify({ message: userMessage + memoryContext })
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.details || data.error || 'AI request failed.');
