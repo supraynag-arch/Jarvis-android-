@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
+import { registerPlugin } from '@capacitor/core';
 import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 import { TextToSpeech } from '@capacitor-community/text-to-speech';
 import { Activity, Battery, Bluetooth, Cpu, Globe2, Grid3X3, History, Home, MapPin, Mic, Settings, ShieldCheck, Signal, Sparkles, Star, Wifi, Zap, Box, Crown, Send, Volume2 } from 'lucide-react';
+
+const JarvisOverlay = registerPlugin<any>('JarvisOverlay');
 
 export default function App() {
   const [time, setTime] = useState(new Date());
@@ -10,6 +13,27 @@ export default function App() {
   const [reply, setReply] = useState('I’m here, always. What can I do for you?');
   const [chatOpen, setChatOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Home');
+
+  const [overlayEnabled, setOverlayEnabled] = useState(false);
+  useEffect(() => {
+    JarvisOverlay.permissionStatus().then((result: any) => setOverlayEnabled(!!result.granted)).catch(() => setOverlayEnabled(false));
+  }, []);
+  const enableFloatingJarvis = async () => {
+    try {
+      const status = await JarvisOverlay.permissionStatus();
+      if (!status.granted) {
+        await JarvisOverlay.requestPermission();
+        setReply('Allow JARVIS under Display over other apps, then tap Float again.');
+        return;
+      }
+      await JarvisOverlay.start();
+      setOverlayEnabled(true);
+      setReply('Floating JARVIS is active. Tap the purple J bubble over other apps to open its panel.');
+    } catch (error) {
+      setReply('Could not start floating mode: ' + String(error));
+    }
+  };
+
   const [messages, setMessages] = useState<{ role: 'user' | 'jarvis'; text: string }[]>(() => {
     try {
       const saved = localStorage.getItem('jarvis-chat-v1');
@@ -158,7 +182,7 @@ export default function App() {
             <button onClick={() => setActiveTab('Smart Control')}><Grid3X3/><span>Apps</span></button>
             <button onClick={() => setActiveTab('Smart Control')}><Box/><span>Tools</span></button>
             <button className={`mic-button ${listening ? 'listening' : ''}`} onClick={startListening}><Mic/><span>{listening ? 'Listening' : 'Tap to speak'}</span></button>
-            <button onClick={() => setReply('Settings panel is coming next.')}><Settings/><span>Settings</span></button>
+            <button onClick={() => void enableFloatingJarvis()}><Settings/><span>{overlayEnabled ? 'Float ON' : 'Float'}</span></button>
             <button onClick={() => setChatOpen(true)}><Activity/><span>More</span></button>
           </section>
 
