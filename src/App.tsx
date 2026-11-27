@@ -97,7 +97,7 @@ setMessages(prev => [
   { role: 'user', text: userMessage },
   {
     role: 'jarvis',
-    text: 'getJarvisReply(userMessage)'
+    text: getJarvisReply(userMessage)
   }
 ]);
 
