@@ -507,3 +507,152 @@ button {
   padding: 14px;
   outline: none;
 }
+
+/* PHONE-FIRST JARVIS LAYOUT */
+@media (max-width: 600px) {
+  body {
+    min-width: 0;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .hud {
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding: 12px;
+    overflow: visible;
+  }
+
+  .topbar {
+    height: auto;
+    min-height: 65px;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 12px;
+  }
+
+  .brand strong {
+    font-size: 15px;
+    letter-spacing: 2px;
+  }
+
+  .brand small {
+    font-size: 8px;
+  }
+
+  .brand-icon {
+    font-size: 28px;
+  }
+
+  .system-online,
+  .clock {
+    display: none;
+  }
+
+  .topbar button {
+    padding: 8px 12px;
+    font-size: 10px;
+  }
+
+  .dashboard {
+    display: flex;
+    flex-direction: column;
+    padding: 25px 0;
+    gap: 15px;
+  }
+
+  .side-panel {
+    display: none;
+  }
+
+  .core-section {
+    width: 100%;
+    min-height: 0;
+  }
+
+  .core-heading span,
+  .core-heading small {
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+
+  .core-heading h2 {
+    font-size: 19px;
+  }
+
+  .reactor {
+    width: min(62vw, 220px);
+    margin: 20px auto;
+  }
+
+  .core-inner {
+    font-size: 32px;
+  }
+
+  .assistant-reply {
+    width: 100%;
+    max-width: 340px;
+    font-size: 14px;
+  }
+
+  .bottom-bar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 0;
+  }
+
+  .command-box {
+    order: 1;
+    width: 100%;
+    max-width: none;
+    flex: 1 1 100%;
+  }
+
+  .mic-button {
+    order: 2;
+    padding: 12px 20px;
+  }
+
+  .power-button {
+    display: none;
+  }
+
+  .signature {
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+
+  .chat-screen {
+    padding: 12px;
+    min-height: 100vh;
+    min-height: 100svh;
+  }
+
+  .chat-header h2 {
+    font-size: 17px;
+    letter-spacing: 2px;
+  }
+
+  .chat-header button,
+  .chat-input button {
+    padding: 10px 14px;
+  }
+
+  .chat-input {
+    gap: 7px;
+  }
+
+  .chat-input input {
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .message {
+    max-width: 90%;
+    padding: 12px;
+  }
+}
