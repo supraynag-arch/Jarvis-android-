@@ -427,3 +427,83 @@ button {
     display: none;
   }
 }
+
+
+/* JARVIS CHAT SCREEN */
+.chat-screen {
+  position: fixed;
+  inset: 0;
+  background: #080511;
+  color: #fff;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #8b35ff;
+  padding-bottom: 15px;
+}
+
+.chat-header h2 {
+  color: #c084fc;
+  letter-spacing: 4px;
+}
+
+.chat-header button,
+.chat-input button {
+  background: #8b35ff;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 20px 0;
+}
+
+.message {
+  padding: 14px 18px;
+  border-radius: 16px;
+  max-width: 80%;
+  line-height: 1.5;
+}
+
+.message.user {
+  align-self: flex-end;
+  background: #5520a5;
+}
+
+.message.jarvis {
+  align-self: flex-start;
+  background: #21152f;
+  border: 1px solid #8b35ff;
+}
+
+.chat-input {
+  display: flex;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.chat-input input {
+  flex: 1;
+  min-width: 0;
+  background: #171020;
+  color: white;
+  border: 1px solid #8b35ff;
+  border-radius: 12px;
+  padding: 14px;
+  outline: none;
+}
