@@ -46,7 +46,7 @@ async function startListening() {
     const result = await SpeechRecognition.start({
       language: 'en-IN',
       maxResults: 1,
-      popup: true,
+      popup: false,
       partialResults: false
     });
 
