@@ -21,7 +21,7 @@ export default function App() {
     { role: 'user' | 'jarvis'; text: string }[]
   >([
     { role: 'jarvis', text: 'Hello! I am JARVIS. How can I assist you?' }
-  ]):
+  ]);
 
   
   useEffect(() => {
